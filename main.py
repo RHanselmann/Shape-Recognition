@@ -24,9 +24,6 @@ mode = "cam"        #"cam" for a live video from your cam (change Device ID)
 # Path to image
 path = r'D:\Unterlagen Studium\Python\Shape-Recognition\Shape-Recognition\sample_image.jpg'
 
-
-
-
 def main():
     if(mode == "cam"):
         if platform.system() == 'Windows':
