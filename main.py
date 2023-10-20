@@ -24,6 +24,7 @@ mode = "cam"        #"cam" for a live video from your cam (change Device ID)
 # Path to image
 path = r'D:\Unterlagen Studium\Python\Shape-Recognition\Shape-Recognition\sample_image.jpg'
 
+
 def main():
     if(mode == "cam"):
         if platform.system() == 'Windows':
@@ -42,11 +43,13 @@ def main():
                 print('ERROR: could not read data from webcam')
                 break;
             
-            cv2.imshow("Press 'q' to quit.", frame)
-            ch = cv2.waitKey(20);
-            if ch==ord('q'):
+            cv2.imshow("'q' - quit     \n'0' - settings", frame)
+
+            # Wait till a key is pressed
+            ch = cv2.waitKey(10);
+            if ch == ord('q'):
                 break;
-            if ch==ord('0'):
+            if ch == ord('0'):
                 cap.set(cv2.CAP_PROP_SETTINGS,0);
 
         cap.release();
@@ -59,8 +62,6 @@ def main():
         # Window name in which the image is displayed
         window_name = 'image'
         
-        # Using cv2.imshow() method
-        # Displaying the image
         cv2.imshow(window_name, image)
 
         # waits for user to press any key
