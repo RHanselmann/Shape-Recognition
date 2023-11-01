@@ -19,8 +19,8 @@ import matplotlib.pyplot as plt
 DEVICE_ID = 0       #change here, to open your preferred webcam 
 
 # Select mode
-mode = "cam"        #"cam" for a live video from your cam (change Device ID)
-#mode = "image"      #"image" to load and show an image (change path)
+#mode = "cam"        #"cam" for a live video from your cam (change Device ID)
+mode = "image"      #"image" to load and show an image (change path)
 
 # Path to image
 path = r'D:\Unterlagen Studium\Python\Shape-Recognition\Shape-Recognition\sample_image.jpg'
@@ -39,6 +39,60 @@ def init_cam():
     
     return cap
 
+def get_color(img, cX, cY):
+    # color detection (red, green, blue, yellow, violet)
+    color = img[cY, cX+20];   #X and Y are swapped!!!!!!!!!!
+    color_str = "unknown"
+    #print("color value: ", color)
+
+    if color[0]>color[1] and color[0]>color[2]:
+        if color[1]<200 and color[2]<100:
+            color_str = "blue"
+        elif color[1]<=color[2]:
+            color_str = "violet"
+        else:
+            color_str = "cyan"
+            
+    elif color[1]>color[0] and color[1]>color[2]:
+        color_str = "green"
+    elif color[2]>color[0] and color[2]>color[1]:
+        if color[1]<100 and color[0]<100:
+            color_str = "red"
+        elif color[1]<=color[0]:
+            color_str = "pink"
+        else:
+            color_str = "yellow"
+    
+    return color_str
+     
+def get_shape(img, cX, cY, cnt):
+    shape_str = "unknown"
+    approx = cv2.approxPolyDP(cnt,0.01*cv2.arcLength(cnt,True),True)
+    if len(approx) > 15:
+        shape_str = "circle"
+    elif len(approx)==4:
+        cv2.minAreaRect(approx) 
+        if True:        #differentiat between square and rectangle. to do!!!!!!
+            shape_str = "square"
+        else:
+            shape_str = "rectangle"
+    elif len(approx)==3:
+        shape_str = "triangle"
+
+    return shape_str
+
+def get_contour_center(cnt):
+    # compute the center of the contour
+    M = cv2.moments(cnt)
+    try:
+        cX = int(M["m10"] / M["m00"])
+        cY = int(M["m01"] / M["m00"])
+        #print("contour center: ", cX, cY)
+
+    except ZeroDivisionError:
+        print('Cannot devide by zero.')
+
+    return cX, cY
 
 def main():
     if(mode == "cam"):
@@ -73,10 +127,6 @@ def main():
         img = cv2.imread(path)       
         cv2.imshow("Image", img)
 
-        # waits for user to press any key
-        # (this is necessary to avoid Python kernel form crashing)
-        cv2.waitKey(0)
-
     # Get contours
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     ret,thresh = cv2.threshold(gray,230,255,cv2.THRESH_BINARY_INV)
@@ -85,74 +135,22 @@ def main():
 
     # Edit image
     for cnt in contours:
-        # compute the center of the contour
-        M = cv2.moments(cnt)
-        try:
-            cX = int(M["m10"] / M["m00"])
-            cY = int(M["m01"] / M["m00"])
-            #print("x, y: ", cX, cY)
+        cX, cY = get_contour_center(cnt)
 
-        except ZeroDivisionError:
-            print('Cannot devide by zero.')
-
-        # color detection (red, green, blue, yellow, violet)
-        color = img[cY, cX+20];   #X and Y are swapped!!!!!!!!!!
-        print(color)
-
-        if color[0]>color[1] and color[0]>color[2]:
-            if color[1]<200 and color[2]<100:
-                print("blue")
-                cv2.putText(img, "blue", (cX-20, cY-20),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
-            elif color[1]<=color[2]:
-                print("violet")
-                cv2.putText(img, "violet", (cX-20, cY-20),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
-            else:
-                print("cyan")
-                cv2.putText(img, "cyan", (cX-20, cY-20),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
-                
-        elif color[1]>color[0] and color[1]>color[2]:
-            print("green")
-            cv2.putText(img, "green", (cX-20, cY-20),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
-            
-        elif color[2]>color[0] and color[2]>color[1]:
-            if color[1]<100 and color[0]<100:
-                print("red")
-                cv2.putText(img, "red", (cX-20, cY-20),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
-            elif color[1]<=color[0]:
-                print("pink")
-                cv2.putText(img, "pink", (cX-20, cY-20),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
-            else:
-                print("yellow")
-                cv2.putText(img, "yellow", (cX-20, cY-20),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
-        
+        # Colors
+        color_str = get_color(img, cX, cY)
+        print(color_str)
+        cv2.putText(img, color_str, (cX-20, cY-20),
+            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)  # -20 is there to put the text a bit higher
 
         # draw the contour and center of the shape on the image
         cv2.drawContours(img, [cnt], -1, (0, 255, 0), 2)
         #cv2.circle(img, (cX, cY), 2, (255, 255, 255), -1)      #mark the center of the contour
 
-        # find shapes
-        approx = cv2.approxPolyDP(cnt,0.01*cv2.arcLength(cnt,True),True)
-        if len(approx) > 15:
-            cv2.putText(img, "circle", (cX-20, cY+20),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
-        elif len(approx)==4:
-            cv2.minAreaRect(approx) 
-            if True:
-                cv2.putText(img, "square", (cX-20, cY+20),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
-            else:
-                cv2.putText(img, "rectangle", (cX-20, cY+20),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
-        elif len(approx)==3:
-            cv2.putText(img, "triangle", (cX-20, cY+20),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+        # Shapes
+        shape_str = get_shape(img, cX, cY, cnt)
+        cv2.putText(img, shape_str, (cX-20, cY+20),
+            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
 
 
 	# show the image
