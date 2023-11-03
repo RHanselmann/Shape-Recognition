@@ -33,7 +33,7 @@ PINK = (255, 0, 255)
 CYAN = (255, 255, 0)
 ORANGE = (0, 127, 255)
 
-#mode = "cam"        #"cam" for a live video from your cam (change Device ID)
+mode = "cam"        #"cam" for a live video from your cam (change Device ID)
 mode = "image"      #"image" to load and show an image (change path)
 
 # Path to image
@@ -82,14 +82,20 @@ def get_color(img, cX, cY):
 def get_shape(img, cX, cY, cnt):
     shape_str = "unknown"
     approx = cv2.approxPolyDP(cnt,0.01*cv2.arcLength(cnt,True),True)
+    
+    # Find the shape depending on the amount of found edges
     if len(approx) > 15:
         shape_str = "circle"
     elif len(approx)==4:
-        cv2.minAreaRect(approx) 
-        if True:        #differentiate between square and rectangle. to do!!!!!!
-            shape_str = "rectangle"
-        else:
-            shape_str = "square"
+        # Check if its a square or a rectangle
+        if len(approx) == 4:
+            x, y, w, h = cv2.boundingRect(approx)
+            size = max(w, h)
+            ratio = float(w)/h
+            if ratio >= 0.9 and ratio <= 1.1:
+                shape_str = "square"
+            else:
+                shape_str = "rectangle"
     elif len(approx)==3:
         shape_str = "triangle"
 
@@ -200,6 +206,7 @@ def main():
     cv2.imshow("Image", img)
     
     cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
     
 if __name__ == "__main__":
