@@ -33,8 +33,8 @@ PINK = (255, 0, 255)
 CYAN = (255, 255, 0)
 ORANGE = (0, 127, 255)
 
-mode = "cam"        #"cam" for a live video from your cam (change Device ID)
-mode = "image"      #"image" to load and show an image (change path)
+MODE = "cam"        #"cam" for a live video from your cam (change Device ID)
+MODE = "image"      #"image" to load and show an image (change path)
 
 # Path to image
 img_path = r'sample_image.jpg'
@@ -54,24 +54,24 @@ def init_cam():
     return cap
 
 def get_color(img, cX, cY):
-    color = img[cY, cX+20];   #X and Y are swapped!!!!!!!!!!
+    b, g, r = img[cY, cX+20];   #X and Y are swapped!!!!!!!!!!
     #print("color value: ", color)
 
     # Color detection (red, green, blue, yellow, violet, cyan, pink)
-    if color[0]>color[1] and color[0]>color[2]:
-        if color[1]<200 and color[2]<100:
+    if b>g and b>r:
+        if g<200 and r<100:
             return "blue"
-        elif color[1]<=color[2]:
+        elif g<=r:
             return "violet"
         else:
             return "cyan"
             
-    elif color[1]>color[0] and color[1]>color[2]:
+    elif g>b and g>r:
         return "green"
-    elif color[2]>color[0] and color[2]>color[1]:
-        if color[1]<100 and color[0]<100:
+    elif r>b and r>g:
+        if g<100 and b<100:
             return "red"
-        elif color[1]<=color[0]:
+        elif g<=b:
             return "pink"
         else:
             return "yellow"
@@ -134,7 +134,7 @@ def main():
     csv_data = [csv_header]
     csv_row = []
 
-    if(mode == "cam"):
+    if(MODE == "cam"):
         video_cap = init_cam()
             
         while(True):
@@ -161,7 +161,7 @@ def main():
         video_cap.release()
         cv2.destroyAllWindows()
     
-    elif(mode == "image"):
+    elif(MODE == "image"):
         # Reading an image in default mode
         img = cv2.imread(img_path)       
         cv2.imshow("Image", img)
