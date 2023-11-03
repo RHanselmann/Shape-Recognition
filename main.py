@@ -1,5 +1,5 @@
 __author__ = "Roman Hanselmann"
-#__copyright__ = "-
+#__copyright__ = "-"
 #__credits__ = ["-"]
 #__license__ = "-"
 #__version__ = "1.0.1"
@@ -10,22 +10,36 @@ __status__ = "Development"
 
 #### Imports
 import numpy as np
+import pandas as pd
+import csv
 import cv2
 import platform
 import matplotlib.pyplot as plt
-  
+import datetime
 
 #### Variables
-DEVICE_ID = 0       #change here, to open your preferred webcam 
+DEVICE_ID = 0       #change here, to open your preferred webcam
 
-# Select mode
+# Colors
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+GRAY = (127, 127, 127)
+BLUE = (255, 0, 0)
+GREEN = (0, 255, 0)
+RED = (0, 0, 255)
+YELLOW = (0, 255, 255)
+VIOLET = (255, 0, 127)
+PINK = (255, 0, 255)
+CYAN = (255, 255, 0)
+ORANGE = (0, 127, 255)
+
 #mode = "cam"        #"cam" for a live video from your cam (change Device ID)
 mode = "image"      #"image" to load and show an image (change path)
 
 # Path to image
-path = r'D:\Unterlagen Studium\Python\Shape-Recognition\Shape-Recognition\sample_image.jpg'
+path = r'sample_image.jpg'
 
-
+#### Functions
 def init_cam():
     if platform.system() == 'Windows':
         videoBackend = cv2.CAP_DSHOW
@@ -40,7 +54,7 @@ def init_cam():
     return cap
 
 def get_color(img, cX, cY):
-    # color detection (red, green, blue, yellow, violet)
+    # color detection (red, green, blue, yellow, violet, cyan, pink)
     color = img[cY, cX+20];   #X and Y are swapped!!!!!!!!!!
     color_str = "unknown"
     #print("color value: ", color)
@@ -72,10 +86,10 @@ def get_shape(img, cX, cY, cnt):
         shape_str = "circle"
     elif len(approx)==4:
         cv2.minAreaRect(approx) 
-        if True:        #differentiat between square and rectangle. to do!!!!!!
-            shape_str = "square"
-        else:
+        if True:        #differentiate between square and rectangle. to do!!!!!!
             shape_str = "rectangle"
+        else:
+            shape_str = "square"
     elif len(approx)==3:
         shape_str = "triangle"
 
@@ -94,7 +108,23 @@ def get_contour_center(cnt):
 
     return cX, cY
 
+def write_csv_file(csv_file, csv_data):
+    try:
+        with open(csv_file, 'w', encoding='UTF8') as file:
+            writer = csv.writer(file)
+            counter = 0
+            for i in csv_data:
+                writer.writerow(csv_data[counter])
+                counter = counter+1
+    except:
+        print("Cant write to log.csv!")
+
+#### Main Code
 def main():
+    csv_header = ['Timestamp', 'Pattern', 'Color']
+    csv_data = [csv_header]
+    csv_row = []
+
     if(mode == "cam"):
         cap = init_cam()
             
@@ -126,12 +156,13 @@ def main():
         # Reading an image in default mode
         img = cv2.imread(path)       
         cv2.imshow("Image", img)
+        cv2.waitKey(0)
 
     # Get contours
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     ret,thresh = cv2.threshold(gray,230,255,cv2.THRESH_BINARY_INV)
     contours,h = cv2.findContours(thresh,1,2)
-    cv2.imshow("Binary", thresh)
+    #cv2.imshow("Binary", thresh)
 
     # Edit image
     for cnt in contours:
@@ -139,21 +170,33 @@ def main():
 
         # Colors
         color_str = get_color(img, cX, cY)
-        print(color_str)
+        #print(color_str)
         cv2.putText(img, color_str, (cX-20, cY-20),
-            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)  # -20 is there to put the text a bit higher
+            cv2.FONT_HERSHEY_SIMPLEX, 0.5, WHITE, 2)  # -20 is there to put the text a bit higher
 
-        # draw the contour and center of the shape on the image
+        # Draw the contour and center of the shape on the image
         cv2.drawContours(img, [cnt], -1, (0, 255, 0), 2)
-        #cv2.circle(img, (cX, cY), 2, (255, 255, 255), -1)      #mark the center of the contour
+        #cv2.circle(img, (cX, cY), 2, (WHITE), -1)      #mark the center of the contour
 
         # Shapes
         shape_str = get_shape(img, cX, cY, cnt)
         cv2.putText(img, shape_str, (cX-20, cY+20),
-            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (WHITE), 2)
+        
+        # Get current time
+        cur_time = datetime.datetime.now()
+        
+        # Collect CSV data (Timestamp, Pattern, Color)
+        csv_row.append(cur_time)
+        csv_row.append(shape_str)
+        csv_row.append(color_str)
+        csv_data = csv_data[:] + [csv_row[:]]        
+        #csv_data.append([csv_row])
+        del csv_row[:]
 
+    write_csv_file('log.csv', csv_data)
 
-	# show the image
+	# Show the final image
     cv2.imshow("Image", img)
     
     cv2.waitKey(0)
