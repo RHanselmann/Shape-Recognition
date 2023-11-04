@@ -33,14 +33,14 @@ PINK = (255, 0, 255)
 CYAN = (255, 255, 0)
 ORANGE = (0, 127, 255)
 
-MODE = "cam"        #"cam" for a live video from your cam (change Device ID)
+#MODE = "cam"        #"cam" for a live video from your cam (change Device ID)
 MODE = "image"      #"image" to load and show an image (change path)
 
 # Path to image
 img_path = r'sample_image.jpg'
 
 #### Functions
-def init_cam():
+def init_cam(DEVICE_ID):
     if platform.system() == 'Windows':
         videoBackend = cv2.CAP_DSHOW
     else:
@@ -129,7 +129,7 @@ def write_csv_file(csv_file, csv_data):
 
 #### Main Code
 def main():
-    #### Local Variables
+    # Local Variables
     csv_header = ['Timestamp', 'Pattern', 'Color']
     csv_data = [csv_header]
     csv_row = []
@@ -175,22 +175,21 @@ def main():
 
     # Edit image
     for cnt in contours:
+        # Contours
+        cv2.drawContours(img, [cnt], -1, (GREEN), 2)    #marks the contour green
         cX, cY = get_contour_center(cnt)
-
-        # Colors
-        color_str = get_color(img, cX, cY)
-        #print(color_str)
-        cv2.putText(img, color_str, (cX-20, cY-20),
-            cv2.FONT_HERSHEY_SIMPLEX, 0.5, WHITE, 2)  # -20 is there to put the text a bit higher
-
-        # Draw the contour and center of the shape on the image
-        cv2.drawContours(img, [cnt], -1, (0, 255, 0), 2)
         #cv2.circle(img, (cX, cY), 2, (WHITE), -1)      #mark the center of the contour
 
         # Shapes
         shape_str = get_shape(img, cX, cY, cnt)
         cv2.putText(img, shape_str, (cX-20, cY+20),
-            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (WHITE), 2)
+            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (WHITE), 2)  # +20 is there to put the text a bit lower
+        
+        # Colors
+        color_str = get_color(img, cX, cY)
+        #print(color_str)
+        cv2.putText(img, color_str, (cX-20, cY-20),
+            cv2.FONT_HERSHEY_SIMPLEX, 0.5, WHITE, 2)  # -20 is there to put the text a bit higher
         
         # Get current time
         cur_time = datetime.datetime.now()
@@ -199,8 +198,7 @@ def main():
         csv_row.append(cur_time)
         csv_row.append(shape_str)
         csv_row.append(color_str)
-        csv_data = csv_data[:] + [csv_row[:]]        
-        #csv_data.append([csv_row])
+        csv_data = csv_data[:] + [csv_row[:]]
         del csv_row[:]
 
     write_csv_file('log.csv', csv_data)
