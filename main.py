@@ -41,6 +41,7 @@ img_path = r'sample_image.jpg'
 
 #### Functions
 def init_cam(DEVICE_ID):
+    '''Takes in the ID of a connected Camera, returns the video capture'''
     if platform.system() == 'Windows':
         videoBackend = cv2.CAP_DSHOW
     else:
@@ -54,6 +55,8 @@ def init_cam(DEVICE_ID):
     return cap
 
 def get_color(img, cX, cY):
+    '''Takes in an image and the XY coordinates of a pixel from that image, 
+    returns the color as string'''
     b, g, r = img[cY, cX+20];   #X and Y are swapped!!!!!!!!!!
     #print("color value: ", color)
 
@@ -78,7 +81,8 @@ def get_color(img, cX, cY):
     else:
         return "unknown"
      
-def get_shape(img, cX, cY, cnt):
+def get_shape(cnt):
+    '''Takes in a contour, returns the shape of that contour as string'''
     shape_str = "unknown"
     approx = cv2.approxPolyDP(cnt, 0.01*cv2.arcLength(cnt, True), True)
     
@@ -101,6 +105,7 @@ def get_shape(img, cX, cY, cnt):
     return shape_str
 
 def get_contour_center(cnt):
+    '''Takes in a contour, returns the XY coordinates of that contour'''
     # Compute the center of the contour
     M = cv2.moments(cnt)
     try:
@@ -117,6 +122,7 @@ def get_contour_center(cnt):
     return cX, cY
 
 def write_csv_file(csv_file, csv_data):
+    '''Takes in the name of a CSV file and the data that shall be written to it'''
     try:
         with open(csv_file, 'w', encoding='UTF8') as file:
             writer = csv.writer(file)
@@ -181,7 +187,7 @@ def main():
         #cv2.circle(img, (cX, cY), 2, (WHITE), -1)      #mark the center of the contour
 
         # Shapes
-        shape_str = get_shape(img, cX, cY, cnt)
+        shape_str = get_shape(cnt)
         cv2.putText(img, shape_str, (cX-20, cY+20),
             cv2.FONT_HERSHEY_SIMPLEX, 0.5, (WHITE), 2)  # +20 is there to put the text a bit lower
         
