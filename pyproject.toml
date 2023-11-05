@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "shape-recognition"
+version = "0.1.0"
+description = ""
+authors = ["Roman <roman.hanselmann@stud.fhgr.ch>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.9,<3.13"
+opencv-python = "^4.8.1.78"
+numpy = "^1.26.1"
+matplotlib = "^3.8.0"
+pandas = "^2.1.2"
+datetime = "^5.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
